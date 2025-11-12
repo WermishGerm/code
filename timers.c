@@ -28,8 +28,10 @@ extern unsigned char sw2_position;
 //  TB0 : main system timer (unchanged)
 //------------------------------------------------------------------------------
 void Init_Timers(void){
-  Init_Timer_B0();       // existing LCD / Second_Count timer
-  Init_Timer_B2();       // NEW debounce timer
+    Init_Timer_B0();
+    //Init_Timer_B1();
+    Init_Timer_B2();  // <-- ADD THIS LINE
+    //Init_Timer_B3();
 }
 
 //------------------------------------------------------------------------------
@@ -71,12 +73,17 @@ __interrupt void TIMER0_B1_ISR(void){
 //------------------------------------------------------------------------------
 //  TB2 : dedicated debounce timer (Homework 08 switches)
 //------------------------------------------------------------------------------
-void Init_Timer_B2(void){
-  TB2CTL   = TBSSEL__SMCLK | TBCLR | MC__UP;   // SMCLK, up mode
-  TB2CCR1  = TB2CCR1_INTERVAL;                 // set interval (~5 ms)
-  TB2CCTL1 = CCIE;                             // enable CCR1 interrupt
-}
+void Init_Timer_B2(void) {
+  TB2CTL = TBSSEL__SMCLK;    // SMCLK source (8 MHz)
+  TB2CTL |= MC__CONTINUOUS;  // Continuous mode
+  TB2CTL |= TBCLR;           // Clear timer
 
+  // CCR1 is used for switch debouncing
+  // Will be configured in switch ISR when needed
+  TB2CCTL1 = 0;              // Start disabled
+
+  // No interrupt enabled yet - switches will enable when needed
+}
 //------------------------------------------------------------------------------
 //  TB2 CCR1 ISR – re-enable switches after debounce
 //------------------------------------------------------------------------------
